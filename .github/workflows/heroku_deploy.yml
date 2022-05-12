@@ -36,7 +36,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          repository: ${{ inputs.repo }}
+          repository: ${{ inputs.repo || github.event.inputs.repo }}
           ref: ${{ inputs.branch_name }}
 
       - name: Deploy to Heroku

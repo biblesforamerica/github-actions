@@ -3,6 +3,9 @@ name: Heroku Deploy
 on:
   workflow_dispatch:
     inputs:
+      repo:
+        type: string
+        required: true
       heroku_app_name:
         type: string
         required: true
@@ -12,6 +15,9 @@ on:
 
   workflow_call:
     inputs:
+      repo:
+        type: string
+        required: true
       heroku_app_name:
         type: string
         required: true
@@ -28,8 +34,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
+          repository: ${{ inputs.repo }}
           ref: ${{ inputs.branch_name }}
 
       - name: Deploy to Heroku

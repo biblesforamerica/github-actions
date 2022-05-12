@@ -1,0 +1,78 @@
+# This action uses parity gem to execute `review restore_from staging`
+# on the Heroku server.
+name: Reset review database on Heroku
+
+on:
+  workflow_call:
+    inputs:
+      repo:
+        type: string
+        required: true
+      staging_remote:
+        type: string
+        required: true
+      review_remote:
+        type: string
+        required: true
+      heroku_app_name:
+        type: string
+        required: true
+    secrets:
+      HEROKU_API_KEY:
+        required: true
+      HEROKU_API_KEY_EMAIL:
+        required: true
+
+jobs:
+  heroku:
+    name: "Restore Heroku Review DB from Staging"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.repo || github.event.inputs.repo }}
+          ref: ${{ inputs.branch_name }}
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Heroku Login
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          # associated with email account below & saved in Github secrets for this repo
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ inputs.heroku_app_name }}
+          # associated with api_key above
+          heroku_email: ${{ secrets.HEROKU_API_KEY_EMAIL }}
+          justlogin: true
+
+      - name: Set Git remote
+        id: set_remote
+        run: |
+          git remote add staging ${{ inputs.staging_remote }} &&
+          git remote add review ${{ inputs.review_remote }}
+
+      # Each review deploy needs a fresh copy of the staging db so other review
+      # deploys don't contaminate data or db structure of another feature being
+      # deployed for review
+      - name: Restore review db from staging
+        id: restore
+        run: bundle exec bin/review restore staging
+
+      # Heroku login step above creates remotes `heroku`. Parity gem needs remotes
+      # setup in `set_remote` step in order to work properly in step `restore`
+      # Deploy to Heroku action can fail in later jobs when there are multiple remotes
+      # if we don't unset these remotes here because it uses the same alias
+      - name: Unset Git remote
+        run: |
+          git remote remove staging &&
+          git remote remove review

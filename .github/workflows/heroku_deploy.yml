@@ -1,18 +1,6 @@
 name: Heroku Deploy
 
 on:
-  workflow_dispatch:
-    inputs:
-      repo:
-        type: string
-        required: true
-      heroku_app_name:
-        type: string
-        required: true
-      branch_name:
-        type: string
-        required: false
-
   workflow_call:
     inputs:
       repo:

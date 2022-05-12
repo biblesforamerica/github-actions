@@ -1,0 +1,40 @@
+name: Heroku Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      heroku_app_name:
+        type: string
+        required: true
+      branch_name:
+        type: string
+        required: false
+
+  workflow_call:
+    inputs:
+      heroku_app_name:
+        type: string
+        required: true
+      branch_name:
+        type: string
+        required: false
+    secrets:
+      HEROKU_API_KEY:
+        required: true
+
+jobs:
+  heroku:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.branch_name }}
+
+      - name: Deploy to Heroku
+        uses: ElayGelbart/Heroku-Auto-Deployment@v1.0.6
+        with:
+          herokuApiKey: ${{ secrets.HEROKU_API_KEY }}
+          herokuAppName: ${{ inputs.heroku_app_name }}
+          branch: ${{ inputs.branch_name }}

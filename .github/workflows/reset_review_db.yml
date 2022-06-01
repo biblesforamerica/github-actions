@@ -11,9 +11,6 @@ on:
       production_remote:
         type: string
         required: true
-      staging_remote:
-        type: string
-        required: true
       review_remote:
         type: string
         required: true
@@ -28,7 +25,7 @@ on:
 
 jobs:
   heroku:
-    name: "Restore Heroku Review DB from Staging"
+    name: "Restore Heroku Review DB from Production"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -62,7 +59,6 @@ jobs:
         id: set_remote
         run: |
           git remote add production ${{ inputs.production_remote }} &&
-          git remote add staging ${{ inputs.staging_remote }} &&
           git remote add review ${{ inputs.review_remote }}
 
       # Each review deploy needs a fresh copy of the staging db so other review
@@ -79,5 +75,4 @@ jobs:
       - name: Unset Git remote
         run: |
           git remote remove production &&
-          git remote remove staging &&
           git remote remove review

@@ -8,6 +8,9 @@ on:
       repo:
         type: string
         required: true
+      production_remote:
+        type: string
+        required: true
       staging_remote:
         type: string
         required: true
@@ -58,15 +61,16 @@ jobs:
       - name: Set Git remote
         id: set_remote
         run: |
+          git remote add production ${{ inputs.production_remote }} &&
           git remote add staging ${{ inputs.staging_remote }} &&
           git remote add review ${{ inputs.review_remote }}
 
       # Each review deploy needs a fresh copy of the staging db so other review
       # deploys don't contaminate data or db structure of another feature being
       # deployed for review
-      - name: Restore review db from staging
+      - name: Restore review db from production
         id: restore
-        run: bundle exec bin/review restore staging
+        run: bundle exec bin/review restore production
 
       # Heroku login step above creates remotes `heroku`. Parity gem needs remotes
       # setup in `set_remote` step in order to work properly in step `restore`
@@ -74,5 +78,6 @@ jobs:
       # if we don't unset these remotes here because it uses the same alias
       - name: Unset Git remote
         run: |
+          git remote remove production &&
           git remote remove staging &&
           git remote remove review

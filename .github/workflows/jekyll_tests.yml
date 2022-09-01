@@ -1,0 +1,67 @@
+# This action uses parity gem to execute `review restore_from staging`
+# on the Heroku server.
+name: Run Jekyll Cypress tests
+on:
+  repository_dispatch:
+    types: [ops_testing_jekyll_orders]
+
+jobs:
+  jekyll_test:
+    if: ${{ !github.event.client_payload.passed }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Jekyll
+        uses: actions/checkout@v3
+        with:
+          repository: biblesforamerica/bfa-jekyll
+          token: ${{ secrets.PAT_GITHUB_ACTIONS_ACCESS_TO_JEKYLL }}
+          path: master
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ secrets.NODE_VERSION }}
+
+      - name: Install dependencies
+        working-directory: master
+        run: npm install
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.6.8
+          bundler-cache: true
+          working-directory: master
+
+      - name: Update Jekyll OPS url
+        working-directory: master
+        run: |
+          echo ${{ github.event.client_payload.ops_url }}
+          # Edit _configCI.yml file in place with the payload ops_url
+          # https://mikefarah.gitbook.io/yq/#quick-usage-guide
+          yq -i '.ops_url = strenv(OPS_URL)' _configCI.yml && 
+          yq '.' _configCI.yml
+        env:
+          OPS_URL: ${{ github.event.client_payload.ops_url }}
+
+      - name: Cypress.io
+        uses: cypress-io/github-action@v4
+        timeout-minutes: 10
+        with:
+          start: yarn start:ci
+          browser: chrome
+          wait-on: "http://localhost:4000"
+          wait-on-timeout: 300
+          headed: false
+          record: true
+          install: false
+          working-directory: master
+          spec: |
+            cypress/**/*order*.js
+            cypress/e2e/*thank_you-spec.js
+        env:
+          CYPRESS_TWILIO_ACCOUNT_SID: ${{ secrets.CYPRESS_TWILIO_ACCOUNT_SID }}
+          CYPRESS_TWILIO_AUTH_TOKEN: ${{ secrets.CYPRESS_TWILIO_AUTH_TOKEN }}
+          CYPRESS_TWILIO_PHONE_NUM: ${{ secrets.CYPRESS_TWILIO_PHONE_NUM }}
+          CYPRESS_DESTROY_DB_TEST_ORDERS_URL: ${{ secrets.CYPRESS_DESTROY_DB_TEST_ORDERS_URL }}
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}

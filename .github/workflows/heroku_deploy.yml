@@ -28,7 +28,7 @@ jobs:
           ref: ${{ inputs.branch_name }}
 
       - name: Deploy to Heroku
-        uses: ElayGelbart/Heroku-Auto-Deployment@v1.0.6
+        uses: ElayGelbart/Heroku-Auto-Deployment@v1.0.8
         with:
           herokuApiKey: ${{ secrets.HEROKU_API_KEY }}
           herokuAppName: ${{ inputs.heroku_app_name }}

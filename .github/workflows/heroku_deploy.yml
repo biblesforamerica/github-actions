@@ -15,6 +15,8 @@ on:
     secrets:
       HEROKU_API_KEY:
         required: true
+      HEROKU_API_KEY_EMAIL:
+        required: true
 
 jobs:
   heroku:
@@ -28,8 +30,9 @@ jobs:
           ref: ${{ inputs.branch_name }}
 
       - name: Deploy to Heroku
-        uses: ElayGelbart/Heroku-Auto-Deployment@v1.0.8
+        uses: akhileshns/heroku-deploy@v3.12.13
         with:
-          herokuApiKey: ${{ secrets.HEROKU_API_KEY }}
-          herokuAppName: ${{ inputs.heroku_app_name }}
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ inputs.heroku_app_name }}
+          heroku_email: ${{ secrets.HEROKU_API_KEY_EMAIL }}
           branch: ${{ inputs.branch_name }}

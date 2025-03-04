@@ -24,13 +24,13 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repo || github.event.inputs.repo }}
           ref: ${{ inputs.branch_name }}
 
       - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.12.14
+        uses: akhileshns/heroku-deploy@v3.12.16
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ${{ inputs.heroku_app_name }}

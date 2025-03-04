@@ -11,41 +11,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Jekyll
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: biblesforamerica/bfa-jekyll
           token: ${{ secrets.PAT_GITHUB_ACTIONS_ACCESS_TO_JEKYLL }}
           path: master
 
-      - name: Setup node
-        uses: actions/setup-node@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ secrets.NODE_VERSION }}
+          node-version-file: "master/.nvmrc"
+          cache: "npm"
+          cache-dependency-path: master/package-lock.json
 
       - name: Install dependencies
         working-directory: master
-        run: npm install
+        run: npm ci
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 2.6.8
           bundler-cache: true
-          working-directory: master
 
-      - name: Update Jekyll OPS url
+      - name: Install `yq` (YAML Processor)
+        run: sudo apt-get update && sudo apt-get install -y yq
+
+      - name: Update Jekyll OPS URL
         working-directory: master
         run: |
           echo ${{ github.event.client_payload.ops_url }}
-          # Edit _configCI.yml file in place with the payload ops_url
-          # https://mikefarah.gitbook.io/yq/#quick-usage-guide
-          yq -i '.ops_url = strenv(OPS_URL)' _configCI.yml && 
-          yq '.' _configCI.yml
+          yq -i '.ops_url = strenv(OPS_URL)' _configCI.yml
+          cat _configCI.yml
         env:
           OPS_URL: ${{ github.event.client_payload.ops_url }}
 
-      - name: Cypress.io
-        uses: cypress-io/github-action@v4
+      - name: Run Cypress Tests
+        uses: cypress-io/github-action@v6
         timeout-minutes: 10
         with:
           start: yarn start:ci

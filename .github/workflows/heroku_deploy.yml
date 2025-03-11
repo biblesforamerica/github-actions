@@ -29,8 +29,13 @@ jobs:
           repository: ${{ inputs.repo || github.event.inputs.repo }}
           ref: ${{ inputs.branch_name }}
 
+      - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
+          heroku --version
+
       - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.12.16
+        uses: akhileshns/heroku-deploy@v3.14.15
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ${{ inputs.heroku_app_name }}

@@ -26,7 +26,7 @@ on:
 jobs:
   heroku:
     name: "Restore Heroku Review DB from Staging"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Cancel Previous Runs
